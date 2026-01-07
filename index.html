@@ -1,0 +1,648 @@
+<!doctype html>
+<html lang="id">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Eight Queen Problem</title>
+  <script src="/_sdk/element_sdk.js"></script>
+  <style>
+        body {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
+        }
+
+        html, body, .main-wrapper {
+            height: 100%;
+            width: 100%;
+        }
+
+        .main-wrapper {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            flex-direction: column;
+            overflow: auto;
+        }
+
+        .container {
+            display: flex;
+            height: 100%;
+            gap: 20px;
+            padding: 20px;
+        }
+
+        .left-panel {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+
+        .right-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        .title {
+            font-size: 28px;
+            font-weight: bold;
+            color: #2d3748;
+            margin: 0 0 8px 0;
+        }
+
+        .subtitle {
+            font-size: 16px;
+            color: #667eea;
+            margin: 0 0 20px 0;
+            font-weight: 600;
+        }
+
+        .problem-description {
+            background: #f7fafc;
+            padding: 16px;
+            border-radius: 12px;
+            border-left: 4px solid #667eea;
+            margin-bottom: 20px;
+        }
+
+        .problem-description h3 {
+            margin: 0 0 12px 0;
+            color: #2d3748;
+            font-size: 18px;
+        }
+
+        .problem-description p {
+            margin: 8px 0;
+            color: #4a5568;
+            line-height: 1.6;
+            font-size: 14px;
+        }
+
+        .rules-section {
+            background: #fff5f5;
+            padding: 16px;
+            border-radius: 12px;
+            border-left: 4px solid #fc8181;
+            margin-bottom: 20px;
+        }
+
+        .rules-section h3 {
+            margin: 0 0 12px 0;
+            color: #742a2a;
+            font-size: 18px;
+        }
+
+        .rules-section ul {
+            margin: 0;
+            padding-left: 20px;
+            color: #742a2a;
+        }
+
+        .rules-section li {
+            margin: 6px 0;
+            font-size: 14px;
+        }
+
+        .stats {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            flex: 1;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 16px;
+            border-radius: 12px;
+            color: white;
+            text-align: center;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            opacity: 0.9;
+            margin-bottom: 4px;
+        }
+
+        .stat-value {
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .instruction {
+            background: #e6fffa;
+            padding: 12px;
+            border-radius: 8px;
+            color: #234e52;
+            font-size: 14px;
+            text-align: center;
+            margin-bottom: 16px;
+        }
+
+        .board-container {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 20px;
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            display: inline-block;
+        }
+
+        .chessboard {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 2px;
+            background: #2d3748;
+            padding: 2px;
+            border-radius: 8px;
+            width: fit-content;
+        }
+
+        .square {
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 32px;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+
+        .square.light {
+            background: #f0d9b5;
+        }
+
+        .square.dark {
+            background: #b58863;
+        }
+
+        .square:hover:not(.has-queen) {
+            transform: scale(1.05);
+            box-shadow: inset 0 0 0 2px #667eea;
+        }
+
+        .square.threatened:not(.has-queen) {
+            background: #feb2b2;
+        }
+
+        .square.light.threatened:not(.has-queen) {
+            background: #fed7d7;
+        }
+
+        .square.has-queen {
+            background: #48bb78;
+        }
+
+        .controls {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-backtrack {
+            background: #fc8181;
+            color: white;
+        }
+
+        .btn-backtrack:hover:not(:disabled) {
+            background: #f56565;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(252, 129, 129, 0.4);
+        }
+
+        .btn-reset {
+            background: #4299e1;
+            color: white;
+        }
+
+        .btn-reset:hover {
+            background: #3182ce;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(66, 153, 225, 0.4);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .success-message {
+            background: #48bb78;
+            color: white;
+            padding: 16px;
+            border-radius: 12px;
+            text-align: center;
+            font-size: 18px;
+            font-weight: 600;
+            margin-top: 16px;
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .history-section {
+            margin-top: auto;
+        }
+
+        .history-section h3 {
+            font-size: 16px;
+            color: #2d3748;
+            margin: 0 0 12px 0;
+        }
+
+        .history-list {
+            max-height: 150px;
+            overflow-y: auto;
+            background: #f7fafc;
+            padding: 12px;
+            border-radius: 8px;
+        }
+
+        .history-item {
+            padding: 8px;
+            background: white;
+            margin-bottom: 6px;
+            border-radius: 6px;
+            font-size: 13px;
+            color: #4a5568;
+            border-left: 3px solid #667eea;
+        }
+
+        .warning-overlay {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(220, 38, 38, 0.95);
+            color: white;
+            padding: 24px 32px;
+            border-radius: 16px;
+            font-size: 18px;
+            font-weight: 600;
+            z-index: 1000;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: warningPulse 0.4s ease;
+            text-align: center;
+        }
+
+        @keyframes warningPulse {
+            0% {
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(0.8);
+            }
+            50% {
+                transform: translate(-50%, -50%) scale(1.05);
+            }
+            100% {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(1);
+            }
+        }
+
+        .square.attack-path {
+            background: #fca5a5 !important;
+            animation: attackBlink 0.5s ease-in-out 2;
+        }
+
+        @keyframes attackBlink {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.5;
+            }
+        }
+    </style>
+  <style>@view-transition { navigation: auto; }</style>
+  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
+  <script src="https://cdn.tailwindcss.com" type="text/javascript"></script>
+ </head>
+ <body>
+  <div class="main-wrapper">
+   <div class="container">
+    <div class="left-panel">
+     <h1 class="title" id="main-title">Eight Queen Problem</h1>
+     <p class="subtitle" id="subtitle">Strategi Backtracking</p>
+     <div class="problem-description">
+      <h3>📋 Deskripsi Masalah</h3>
+      <p><strong>Eight Queen Problem</strong> adalah masalah klasik dalam ilmu komputer dan matematika. Tantangannya adalah menempatkan 8 buah queen (ratu) di papan catur 8×8 sedemikian rupa sehingga tidak ada queen yang saling menyerang.</p>
+      <p>Masalah ini sangat baik untuk mempelajari teknik <strong>backtracking</strong>, yaitu strategi mencoba solusi, dan jika gagal, kembali ke langkah sebelumnya untuk mencoba alternatif lain.</p>
+     </div>
+     <div class="rules-section">
+      <h3>⚠️ Aturan Permainan</h3>
+      <ul>
+       <li>Tempatkan queen dengan klik kotak papan catur</li>
+       <li>Queen dapat menyerang secara horizontal, vertikal, dan diagonal</li>
+      </ul>
+     </div>
+     <div class="stats">
+      <div class="stat-card">
+       <div class="stat-label">
+        Queen Ditempatkan
+       </div>
+       <div class="stat-value" id="queen-count">
+        0
+       </div>
+      </div>
+      <div class="stat-card">
+       <div class="stat-label">
+        Langkah Total
+       </div>
+       <div class="stat-value" id="step-count">
+        0
+       </div>
+      </div>
+     </div>
+     <div class="history-section">
+      <h3>📜 Riwayat Langkah</h3>
+      <div class="history-list" id="history-list">
+       <p style="text-align: center; color: #a0aec0; font-size: 13px;">Belum ada langkah</p>
+      </div>
+     </div>
+    </div>
+    <div class="right-panel">
+     <div class="instruction" id="instruction-text">
+      🖱️ Klik kotak untuk menempatkan queen. Kotak merah menunjukkan posisi yang terancam.
+     </div>
+     <div class="board-container">
+      <div class="chessboard" id="chessboard"></div>
+     </div>
+     <div class="controls"><button class="btn btn-backtrack" id="backtrack-btn" disabled> ↩️ <span id="backtrack-text">Backtrack</span> </button> <button class="btn btn-reset" id="reset-btn"> 🔄 <span id="reset-text">Reset</span> </button>
+     </div>
+     <div id="success-container"></div>
+    </div>
+   </div>
+  </div>
+  <script>
+        const defaultConfig = {
+            main_title: "Eight Queen Problem",
+            subtitle: "Strategi Backtracking",
+            instruction_text: "🖱️ Klik kotak untuk menempatkan queen di papan catur.",
+            backtrack_button: "Backtrack",
+            reset_button: "Reset"
+        };
+
+        let queens = [];
+        let history = [];
+        let totalSteps = 0;
+
+        function initBoard() {
+            const chessboard = document.getElementById('chessboard');
+            chessboard.innerHTML = '';
+
+            for (let row = 0; row < 8; row++) {
+                for (let col = 0; col < 8; col++) {
+                    const square = document.createElement('div');
+                    square.className = `square ${(row + col) % 2 === 0 ? 'light' : 'dark'}`;
+                    square.dataset.row = row;
+                    square.dataset.col = col;
+                    square.addEventListener('click', handleSquareClick);
+                    chessboard.appendChild(square);
+                }
+            }
+
+            updateBoard();
+        }
+
+        function handleSquareClick(e) {
+            const row = parseInt(e.currentTarget.dataset.row);
+            const col = parseInt(e.currentTarget.dataset.col);
+
+            if (isQueenAt(row, col)) {
+                return;
+            }
+
+            if (!isSafe(row, col)) {
+                showWarning(row, col);
+                return;
+            }
+
+            placeQueen(row, col);
+        }
+
+        function showWarning(targetRow, targetCol) {
+            const attackingQueens = queens.filter(q => {
+                return q.row === targetRow || 
+                       q.col === targetCol || 
+                       Math.abs(q.row - targetRow) === Math.abs(q.col - targetCol);
+            });
+
+            highlightAttackPaths(attackingQueens, targetRow, targetCol);
+
+            const warning = document.createElement('div');
+            warning.className = 'warning-overlay';
+            warning.textContent = '⚠️ Posisi Terancam! Queen tidak bisa ditempatkan di sini';
+            document.body.appendChild(warning);
+
+            setTimeout(() => {
+                warning.remove();
+                clearAttackPaths();
+            }, 1500);
+        }
+
+        function highlightAttackPaths(attackingQueens, targetRow, targetCol) {
+            const squares = document.querySelectorAll('.square');
+            
+            attackingQueens.forEach(queen => {
+                squares.forEach(square => {
+                    const row = parseInt(square.dataset.row);
+                    const col = parseInt(square.dataset.col);
+
+                    if (queen.row === targetRow && row === targetRow) {
+                        square.classList.add('attack-path');
+                    }
+                    else if (queen.col === targetCol && col === targetCol) {
+                        square.classList.add('attack-path');
+                    }
+                    else if (Math.abs(queen.row - row) === Math.abs(queen.col - col) &&
+                             Math.abs(targetRow - row) === Math.abs(targetCol - col) &&
+                             ((queen.row < targetRow && row < targetRow) || (queen.row > targetRow && row > targetRow))) {
+                        square.classList.add('attack-path');
+                    }
+                });
+            });
+        }
+
+        function clearAttackPaths() {
+            const squares = document.querySelectorAll('.square');
+            squares.forEach(square => {
+                square.classList.remove('attack-path');
+            });
+        }
+
+        function placeQueen(row, col) {
+            queens.push({ row, col });
+            history.push({ row, col, action: 'place' });
+            totalSteps++;
+
+            addHistoryItem(`Langkah ${totalSteps}: Menempatkan queen di (${row + 1}, ${col + 1})`);
+            updateBoard();
+            updateStats();
+
+            if (queens.length === 8) {
+                showSuccess();
+            }
+        }
+
+        function isQueenAt(row, col) {
+            return queens.some(q => q.row === row && q.col === col);
+        }
+
+        function isSafe(row, col) {
+            for (let queen of queens) {
+                if (queen.row === row || queen.col === col) {
+                    return false;
+                }
+
+                if (Math.abs(queen.row - row) === Math.abs(queen.col - col)) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        function isThreatenedSquare(row, col) {
+            if (isQueenAt(row, col)) {
+                return false;
+            }
+
+            return !isSafe(row, col);
+        }
+
+        function updateBoard() {
+            const squares = document.querySelectorAll('.square');
+
+            squares.forEach(square => {
+                const row = parseInt(square.dataset.row);
+                const col = parseInt(square.dataset.col);
+
+                square.classList.remove('threatened', 'has-queen');
+                square.textContent = '';
+
+                if (isQueenAt(row, col)) {
+                    square.classList.add('has-queen');
+                    square.textContent = '♛';
+                } else if (isThreatenedSquare(row, col)) {
+                    square.classList.add('threatened');
+                }
+            });
+
+            document.getElementById('backtrack-btn').disabled = queens.length === 0;
+        }
+
+        function updateStats() {
+            document.getElementById('queen-count').textContent = queens.length;
+            document.getElementById('step-count').textContent = totalSteps;
+        }
+
+        function addHistoryItem(text) {
+            const historyList = document.getElementById('history-list');
+
+            if (historyList.querySelector('p')) {
+                historyList.innerHTML = '';
+            }
+
+            const item = document.createElement('div');
+            item.className = 'history-item';
+            item.textContent = text;
+            historyList.appendChild(item);
+            historyList.scrollTop = historyList.scrollHeight;
+        }
+
+        function backtrack() {
+            if (queens.length === 0) return;
+
+            const lastQueen = queens.pop();
+            totalSteps++;
+            history.push({ row: lastQueen.row, col: lastQueen.col, action: 'backtrack' });
+
+            addHistoryItem(`Langkah ${totalSteps}: Backtrack dari (${lastQueen.row + 1}, ${lastQueen.col + 1})`);
+
+            document.getElementById('success-container').innerHTML = '';
+            updateBoard();
+            updateStats();
+        }
+
+        function reset() {
+            queens = [];
+            history = [];
+            totalSteps = 0;
+
+            document.getElementById('history-list').innerHTML = '<p style="text-align: center; color: #a0aec0; font-size: 13px;">Belum ada langkah</p>';
+            document.getElementById('success-container').innerHTML = '';
+
+            updateBoard();
+            updateStats();
+        }
+
+        function showSuccess() {
+            const container = document.getElementById('success-container');
+            container.innerHTML = '<div class="success-message">🎉 Selamat! Anda berhasil menyelesaikan Eight Queen Problem!</div>';
+        }
+
+        document.getElementById('backtrack-btn').addEventListener('click', backtrack);
+        document.getElementById('reset-btn').addEventListener('click', reset);
+
+        async function onConfigChange(config) {
+            document.getElementById('main-title').textContent = config.main_title || defaultConfig.main_title;
+            document.getElementById('subtitle').textContent = config.subtitle || defaultConfig.subtitle;
+            document.getElementById('instruction-text').textContent = config.instruction_text || defaultConfig.instruction_text;
+            document.getElementById('backtrack-text').textContent = config.backtrack_button || defaultConfig.backtrack_button;
+            document.getElementById('reset-text').textContent = config.reset_button || defaultConfig.reset_button;
+        }
+
+        if (window.elementSdk) {
+            window.elementSdk.init({
+                defaultConfig: defaultConfig,
+                onConfigChange: onConfigChange,
+                mapToCapabilities: (config) => ({
+                    recolorables: [],
+                    borderables: [],
+                    fontEditable: undefined,
+                    fontSizeable: undefined
+                }),
+                mapToEditPanelValues: (config) => new Map([
+                    ["main_title", config.main_title || defaultConfig.main_title],
+                    ["subtitle", config.subtitle || defaultConfig.subtitle],
+                    ["instruction_text", config.instruction_text || defaultConfig.instruction_text],
+                    ["backtrack_button", config.backtrack_button || defaultConfig.backtrack_button],
+                    ["reset_button", config.reset_button || defaultConfig.reset_button]
+                ])
+            });
+        }
+
+        initBoard();
+        updateStats();
+    </script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9ba16d91c0bc472e',t:'MTc2Nzc2NzY1Mi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
